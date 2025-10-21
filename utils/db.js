@@ -1,26 +1,10 @@
-import { db } from './firebase.js';
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy 
-} from 'firebase/firestore';
+import { apiClient } from './mongodb.js';
 
-// Service requests collection
+// Service requests
 export const addServiceRequest = async (data) => {
   try {
-    const docRef = await addDoc(collection(db, 'serviceRequests'), {
-      ...data,
-      createdAt: new Date(),
-      status: 'pending'
-    });
-    return docRef.id;
+    const response = await apiClient.post('/service-requests', data);
+    return response.id;
   } catch (error) {
     console.error('Error adding service request:', error);
     throw error;
@@ -29,8 +13,7 @@ export const addServiceRequest = async (data) => {
 
 export const getServiceRequests = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, 'serviceRequests'));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return await apiClient.get('/service-requests');
   } catch (error) {
     console.error('Error getting service requests:', error);
     throw error;
@@ -39,23 +22,18 @@ export const getServiceRequests = async () => {
 
 export const updateServiceRequest = async (id, data) => {
   try {
-    const docRef = doc(db, 'serviceRequests', id);
-    await updateDoc(docRef, { ...data, updatedAt: new Date() });
+    await apiClient.put(`/service-requests/${id}`, data);
   } catch (error) {
     console.error('Error updating service request:', error);
     throw error;
   }
 };
 
-// Contact messages collection
+// Contact messages
 export const addContactMessage = async (data) => {
   try {
-    const docRef = await addDoc(collection(db, 'contactMessages'), {
-      ...data,
-      createdAt: new Date(),
-      read: false
-    });
-    return docRef.id;
+    const response = await apiClient.post('/contact-messages', data);
+    return response.id;
   } catch (error) {
     console.error('Error adding contact message:', error);
     throw error;
@@ -64,12 +42,11 @@ export const addContactMessage = async (data) => {
 
 export const getContactMessages = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, 'contactMessages'));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return await apiClient.get('/contact-messages');
   } catch (error) {
     console.error('Error getting contact messages:', error);
     throw error;
   }
 };
 
-export { db };
+export { apiClient as db };
