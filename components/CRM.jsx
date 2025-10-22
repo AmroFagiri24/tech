@@ -89,8 +89,10 @@ export default function CRM({ onClose }) {
           ...formData,
           createdAt: new Date().toISOString()
         })
-        const newCustomer = { ...formData, id: result.id, createdAt: new Date().toISOString() }
+        console.log('Add result:', result)
+        const newCustomer = { ...formData, id: result, createdAt: new Date().toISOString() }
         setCustomers([...customers, newCustomer])
+        alert('Customer added successfully!')
       }
       resetForm()
     } catch (error) {
@@ -112,13 +114,17 @@ export default function CRM({ onClose }) {
   }
 
   const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this customer?')) return
+    
     try {
-      await deleteServiceRequest(id)
+      console.log('Deleting customer with ID:', id)
+      const response = await deleteServiceRequest(id)
+      console.log('Delete successful:', response)
       setCustomers(customers.filter(c => c.id !== id))
+      alert('Customer deleted successfully!')
     } catch (error) {
       console.error('Failed to delete customer:', error)
-      // Still remove from local state as fallback
-      setCustomers(customers.filter(c => c.id !== id))
+      alert('Failed to delete customer. Please try again.')
     }
   }
 

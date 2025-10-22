@@ -29,6 +29,16 @@ export const updateServiceRequest = async (id, data) => {
   }
 };
 
+export const deleteServiceRequest = async (id) => {
+  try {
+    const response = await apiClient.delete(`/service-requests/${id}`);
+    return response;
+  } catch (error) {
+    console.error('Error deleting service request:', error);
+    throw error;
+  }
+};
+
 // Contact messages
 export const addContactMessage = async (data) => {
   try {

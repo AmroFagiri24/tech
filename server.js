@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.VITE_MONGODB_URI || 'mongodb://localhost:27017/emporos-nexus';
+const MONGODB_URI = 'mongodb+srv://kolrtawwe2009_db_user:ECHqJUic7NcK4H5o@tech.jtpr2yt.mongodb.net/?retryWrites=true&w=majority&appName=Tech';
 
 app.use(cors());
 app.use(express.json());
@@ -63,11 +63,15 @@ app.put('/api/service-requests/:id', async (req, res) => {
 
 app.delete('/api/service-requests/:id', async (req, res) => {
   try {
-    await db.collection('serviceRequests').deleteOne(
+    const result = await db.collection('serviceRequests').deleteOne(
       { _id: new ObjectId(req.params.id) }
     );
-    res.json({ success: true });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+    res.json({ success: true, deletedCount: result.deletedCount });
   } catch (error) {
+    console.error('Delete error:', error);
     res.status(500).json({ error: error.message });
   }
 });
