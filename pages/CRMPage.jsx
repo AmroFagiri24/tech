@@ -46,20 +46,6 @@ export default function CRMPage({ onBack }) {
 
   useEffect(() => {
     loadCustomers()
-    
-    // Real-time listeners
-    const unsubscribeCustomers = onSnapshot(collection(db, 'customers'), () => {
-      loadCustomers()
-    })
-    
-    const unsubscribeRequests = onSnapshot(collection(db, 'serviceRequests'), () => {
-      loadCustomers()
-    })
-
-    return () => {
-      unsubscribeCustomers()
-      unsubscribeRequests()
-    }
   }, [])
 
   const filteredCustomers = customers.filter(customer =>
@@ -107,9 +93,8 @@ export default function CRMPage({ onBack }) {
         await deleteCustomer(id)
       }
       
-      // Remove from local state and reload
+      // Remove from local state
       setCustomers(customers.filter(c => c.id !== id))
-      setTimeout(() => loadCustomers(), 500)
       
     } catch (error) {
       console.error('Failed to delete:', error)
