@@ -55,8 +55,8 @@ export default function Header() {
               onClick={() => handleNavClick('/')}
               className="text-2xl font-bold flex items-center hover:scale-105 transition-all duration-300 text-white"
             >
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-2 rounded-xl mr-3">
-                <CpuChipIcon className="h-6 w-6 text-white" />
+              <div className="mr-3">
+                <img src="/styles/Image/Emporos-logo1.png" alt="Emporos Nexus Logo" className="h-10 w-10 rounded-xl" />
               </div>
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent">
                 Emporos Nexus

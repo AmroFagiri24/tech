@@ -8,7 +8,7 @@ export default function Footer() {
           {/* Company Info */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <CpuChipIcon className="h-8 w-8 text-blue-400" />
+              <img src="/styles/Image/Emporos-logo1.png" alt="Emporos Nexus Logo" className="h-8 w-8 rounded-lg" />
               <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent">Emporos Nexus</h3>
             </div>
             <p className="mb-6 max-w-md text-slate-300">
