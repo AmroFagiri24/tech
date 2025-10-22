@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     question: "What areas do you serve?",
-    answer: "We serve the Greater Toronto Area (GTA) including Toronto, Mississauga, Brampton, Markham, Richmond Hill, and surrounding areas. We offer both in-store service and on-site visits for your convenience."
+    answer: "We serve the Greater Toronto Area (GTA) including Toronto, Mississauga, Brampton, Markham, Richmond Hill, and surrounding areas. We currently offer on-site visits to your location. In-store service coming soon!"
   },
   {
     question: "How much do repairs typically cost?",
