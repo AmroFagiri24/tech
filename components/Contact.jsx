@@ -58,7 +58,7 @@ export default function Contact() {
                     onClick={handleEmailClick}
                     className="text-blue-400 hover:text-cyan-400 transition-colors"
                   >
-                    Empros2025@gmail.com
+                    Eporos2025@gmail.com
                   </button>
                   <p className="text-sm text-gray-400">Send us your questions</p>
                 </div>
