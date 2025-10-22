@@ -29,7 +29,7 @@ export const buttonActions = {
   },
 
   // Contact actions
-  sendEmail: (email = 'Eporos2025@gmail.com') => {
+  sendEmail: (email = 'Emporos2025@gmail.com') => {
     window.location.href = `mailto:${email}`;
   },
 
