@@ -26,7 +26,11 @@ MongoClient.connect(MONGODB_URI)
 app.get('/api/service-requests', async (req, res) => {
   try {
     const requests = await db.collection('serviceRequests').find().toArray();
-    res.json(requests);
+    const formattedRequests = requests.map(req => ({
+      ...req,
+      id: req._id.toString()
+    }));
+    res.json(formattedRequests);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -37,9 +41,9 @@ app.post('/api/service-requests', async (req, res) => {
     const result = await db.collection('serviceRequests').insertOne({
       ...req.body,
       createdAt: new Date(),
-      status: 'pending'
+      status: req.body.status || 'Pending'
     });
-    res.json({ id: result.insertedId });
+    res.json({ id: result.insertedId.toString() });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -50,6 +54,17 @@ app.put('/api/service-requests/:id', async (req, res) => {
     await db.collection('serviceRequests').updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: { ...req.body, updatedAt: new Date() } }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/service-requests/:id', async (req, res) => {
+  try {
+    await db.collection('serviceRequests').deleteOne(
+      { _id: new ObjectId(req.params.id) }
     );
     res.json({ success: true });
   } catch (error) {

@@ -25,6 +25,14 @@ export const apiClient = {
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
+  },
+  
+  async delete(endpoint) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return response.json();
   }
 };
 

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getServiceRequests, addServiceRequest, updateServiceRequest, deleteServiceRequest } from '../utils/db.js'
 import { 
   XMarkIcon, 
   PlusIcon, 
@@ -10,10 +11,8 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function CRM({ onClose }) {
-  const [customers, setCustomers] = useState([
-    { id: 1, name: 'John Doe', phone: '514-555-0123', email: 'john@email.com', location: '123 Main St, Montreal', service: 'Computer Repair', status: 'Pending' },
-    { id: 2, name: 'Jane Smith', phone: '514-555-0456', email: 'jane@email.com', location: '456 Oak Ave, Laval', service: 'MacBook Repair', status: 'Completed' }
-  ])
+  const [customers, setCustomers] = useState([])
+  const [loading, setLoading] = useState(true)
   
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -25,20 +24,57 @@ export default function CRM({ onClose }) {
   const services = ['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation', 'Network Setup']
   const statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled']
 
+  // Load customers from database
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        const data = await getServiceRequests()
+        setCustomers(data || [])
+      } catch (error) {
+        console.error('Failed to load customers:', error)
+        // Fallback to localStorage
+        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]')
+        setCustomers(localBookings.map((booking, index) => ({
+          id: index + 1,
+          name: booking.name,
+          phone: booking.phone,
+          email: booking.email,
+          location: booking.location,
+          service: booking.service,
+          status: booking.status || 'Pending'
+        })))
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadCustomers()
+  }, [])
+
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.phone.includes(searchTerm) ||
     customer.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (editingId) {
-      setCustomers(customers.map(c => c.id === editingId ? { ...formData, id: editingId } : c))
-    } else {
-      setCustomers([...customers, { ...formData, id: Date.now() }])
+    try {
+      if (editingId) {
+        await updateServiceRequest(editingId, formData)
+        setCustomers(customers.map(c => c.id === editingId ? { ...formData, id: editingId } : c))
+      } else {
+        const result = await addServiceRequest({
+          ...formData,
+          createdAt: new Date().toISOString()
+        })
+        const newCustomer = { ...formData, id: result.id, createdAt: new Date().toISOString() }
+        setCustomers([...customers, newCustomer])
+      }
+      resetForm()
+    } catch (error) {
+      console.error('Failed to save customer:', error)
+      alert('Failed to save customer. Please check your connection and try again.')
     }
-    resetForm()
   }
 
   const resetForm = () => {
@@ -53,8 +89,15 @@ export default function CRM({ onClose }) {
     setShowForm(true)
   }
 
-  const handleDelete = (id) => {
-    setCustomers(customers.filter(c => c.id !== id))
+  const handleDelete = async (id) => {
+    try {
+      await deleteServiceRequest(id)
+      setCustomers(customers.filter(c => c.id !== id))
+    } catch (error) {
+      console.error('Failed to delete customer:', error)
+      // Still remove from local state as fallback
+      setCustomers(customers.filter(c => c.id !== id))
+    }
   }
 
   return (
@@ -91,8 +134,17 @@ export default function CRM({ onClose }) {
 
         {/* Customer List */}
         <div className="flex-1 overflow-auto p-3 sm:p-4">
-          <div className="space-y-3">
-            {filteredCustomers.map((customer) => (
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-white">Loading customers...</div>
+            </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              No customers found
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredCustomers.map((customer) => (
               <div key={customer.id} className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
@@ -140,8 +192,9 @@ export default function CRM({ onClose }) {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Add/Edit Form Modal */}

@@ -135,10 +135,22 @@ const showBookingModal = () => {
       date: new Date().toLocaleString()
     };
     
-    // Save to localStorage
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    bookings.push(booking);
-    localStorage.setItem('bookings', JSON.stringify(bookings));
+    // Save to database
+    try {
+      // Import db functions
+      const { addServiceRequest } = await import('./db.js');
+      await addServiceRequest({
+        ...booking,
+        status: 'Pending',
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to save booking:', error);
+      // Fallback to localStorage
+      const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+      bookings.push(booking);
+      localStorage.setItem('bookings', JSON.stringify(bookings));
+    }
     
     buttonActions.showNotification('Booking request submitted! We\'ll contact you soon.');
     closeBookingModal();
