@@ -1,39 +1,37 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+import { MongoClient } from 'mongodb';
 
-export const apiClient = {
-  async get(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
-  },
-  
-  async post(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
-  },
-  
-  async put(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
-  },
-  
-  async delete(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'DELETE'
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
+const MONGODB_URI = 'mongodb://localhost:27017';
+const DB_NAME = 'Emporos-tech-nexus';
+
+let client;
+let db;
+
+export async function connectToMongoDB() {
+  try {
+    if (!client || !client.topology || !client.topology.isConnected()) {
+      if (client) {
+        await client.close();
+      }
+      
+      client = new MongoClient(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 10000,
+      });
+      
+      await client.connect();
+      db = client.db(DB_NAME);
+      console.log('Connected to MongoDB');
+    }
+    return db;
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    throw error;
   }
-};
+}
 
-export default apiClient;
+export async function getCollection(collectionName) {
+  const database = await connectToMongoDB();
+  return database.collection(collectionName);
+}
+
+export default { connectToMongoDB, getCollection };
