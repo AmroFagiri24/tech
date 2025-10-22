@@ -230,10 +230,10 @@ export default function Hero() {
                   }`}>Contact:</h3>
                   <p className={`text-sm ${
                     isDarkMode ? 'text-blue-200' : 'text-blue-700'
-                  }`}>Empros2025@gmail.com</p>
+                  }`}>Emporos2025@gmail.com</p>
                   <p className={`text-sm ${
                     isDarkMode ? 'text-blue-200' : 'text-blue-700'
-                  }`}>GTA, ON, Canada</p>
+                  }`}>Toronto, ON, Canada</p>
                 </div>
               </div>
             </div>
