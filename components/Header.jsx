@@ -32,6 +32,8 @@ export default function Header() {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
+    } else {
+      window.location.href = href
     }
   }
 

@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getCustomers, getServiceRequests, deleteCustomer, deleteServiceRequest, addCustomer } from '../utils/db.js'
+import { db } from '../utils/firebase.js'
+import { collection, onSnapshot } from 'firebase/firestore'
 import { 
   PlusIcon, 
   PencilIcon, 
@@ -10,10 +13,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function CRMPage({ onBack }) {
-  const [customers, setCustomers] = useState([
-    { id: 1, name: 'John Doe', phone: '514-555-0123', email: 'john@email.com', service: 'Computer Repair', status: 'Pending' },
-    { id: 2, name: 'Jane Smith', phone: '514-555-0456', email: 'jane@email.com', service: 'MacBook Repair', status: 'Completed' }
-  ])
+  const [customers, setCustomers] = useState([])
   
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -25,20 +25,63 @@ export default function CRMPage({ onBack }) {
   const services = ['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation', 'Network Setup']
   const statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled']
 
+  // Load data from Firebase
+  const loadCustomers = async () => {
+    try {
+      const [customersData, serviceRequestsData] = await Promise.all([
+        getCustomers(),
+        getServiceRequests()
+      ])
+      
+      const allData = [
+        ...(customersData || []).map(c => ({...c, source: 'customer'})),
+        ...(serviceRequestsData || []).map(s => ({...s, source: 'serviceRequest'}))
+      ]
+      
+      setCustomers(allData)
+    } catch (error) {
+      console.error('Failed to load data:', error)
+    }
+  }
+
+  useEffect(() => {
+    loadCustomers()
+    
+    // Real-time listeners
+    const unsubscribeCustomers = onSnapshot(collection(db, 'customers'), () => {
+      loadCustomers()
+    })
+    
+    const unsubscribeRequests = onSnapshot(collection(db, 'serviceRequests'), () => {
+      loadCustomers()
+    })
+
+    return () => {
+      unsubscribeCustomers()
+      unsubscribeRequests()
+    }
+  }, [])
+
   const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+    customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.phone?.includes(searchTerm) ||
+    customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (editingId) {
-      setCustomers(customers.map(c => c.id === editingId ? { ...formData, id: editingId } : c))
-    } else {
-      setCustomers([...customers, { ...formData, id: Date.now() }])
+    try {
+      if (editingId) {
+        // Update existing customer (implement if needed)
+        setCustomers(customers.map(c => c.id === editingId ? { ...formData, id: editingId } : c))
+      } else {
+        // Add new customer to Firebase
+        await addCustomer(formData)
+      }
+      resetForm()
+    } catch (error) {
+      console.error('Failed to save customer:', error)
     }
-    resetForm()
   }
 
   const resetForm = () => {
@@ -53,8 +96,24 @@ export default function CRMPage({ onBack }) {
     setShowForm(true)
   }
 
-  const handleDelete = (id) => {
-    setCustomers(customers.filter(c => c.id !== id))
+  const handleDelete = async (id) => {
+    try {
+      const customer = customers.find(c => c.id === id)
+      
+      // Delete from correct Firebase collection
+      if (customer?.source === 'serviceRequest') {
+        await deleteServiceRequest(id)
+      } else {
+        await deleteCustomer(id)
+      }
+      
+      // Remove from local state and reload
+      setCustomers(customers.filter(c => c.id !== id))
+      setTimeout(() => loadCustomers(), 500)
+      
+    } catch (error) {
+      console.error('Failed to delete:', error)
+    }
   }
 
   return (

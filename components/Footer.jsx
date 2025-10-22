@@ -20,7 +20,7 @@ export default function Footer() {
                 <span className="text-slate-300">+1 (514) 557-1996</span>
               </div>
               <p className="text-slate-300">Empros2025@gmail.com</p>
-              <p className="text-slate-300">GTA, ON, Canada</p>
+              <p className="text-slate-300">Toronto, ON, Canada</p>
             </div>
           </div>
 

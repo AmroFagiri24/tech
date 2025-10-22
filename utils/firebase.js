@@ -2,12 +2,12 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyBX2gw6NZ72E4PTXKnrrQHDb49JdULw0AA",
+  authDomain: "emporos-nexus.firebaseapp.com",
+  projectId: "emporos-nexus",
+  storageBucket: "emporos-nexus.firebasestorage.app",
+  messagingSenderId: "831638739463",
+  appId: "1:831638739463:web:1649fed07c15a80efca8a2"
 };
 
 const app = initializeApp(firebaseConfig);

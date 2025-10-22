@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getServiceRequests, addServiceRequest, updateServiceRequest, deleteServiceRequest } from '../utils/db.js'
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer, getServiceRequests, deleteServiceRequest } from '../utils/db.js'
+import { db } from '../utils/firebase.js'
+import { collection, onSnapshot } from 'firebase/firestore'
 import { 
   XMarkIcon, 
   PlusIcon, 
@@ -24,80 +26,83 @@ export default function CRM({ onClose }) {
   const services = ['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation', 'Network Setup', 'Web Design', 'Mobile Applications']
   const statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled']
 
-  // Load customers from database
-  useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        const data = await getServiceRequests()
-        setCustomers(data || [])
-      } catch (error) {
-        console.error('Failed to load customers:', error)
-        // Fallback to localStorage and sync to database
-        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]')
-        const formattedBookings = localBookings.map((booking, index) => ({
-          id: `local-${index + 1}`,
-          name: booking.name,
-          phone: booking.phone || '+1 (514) 557-1996',
-          email: booking.email,
-          location: booking.location,
-          service: booking.service,
-          status: booking.status || 'Pending'
-        }))
-        setCustomers(formattedBookings)
-        
-        // Sync local bookings to database
-        if (localBookings.length > 0) {
-          localBookings.forEach(async (booking) => {
-            try {
-              await fetch('http://localhost:3001/api/service-requests', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  ...booking,
-                  phone: booking.phone || '+1 (514) 557-1996',
-                  status: 'Pending',
-                  createdAt: new Date().toISOString()
-                })
-              })
-            } catch (error) {
-              console.error('Failed to sync booking to database:', error)
-            }
-          })
-          localStorage.removeItem('bookings') // Clear after sync
-        }
-      } finally {
-        setLoading(false)
-      }
+  // Load all customer data from Firebase
+  const loadCustomers = async () => {
+    try {
+      setLoading(true)
+      console.log('Loading customers and service requests...')
+      
+      const [customersData, serviceRequestsData] = await Promise.all([
+        getCustomers(),
+        getServiceRequests()
+      ])
+      
+      console.log('Customers data:', customersData?.length || 0)
+      console.log('Service requests data:', serviceRequestsData?.length || 0)
+      
+      // Combine both collections with proper source identification
+      const allData = [
+        ...(customersData || []).map(customer => ({ ...customer, source: 'customer' })),
+        ...(serviceRequestsData || []).map(req => ({ ...req, source: 'serviceRequest' }))
+      ]
+      
+      console.log('Total combined data:', allData.length)
+      setCustomers(allData)
+    } catch (error) {
+      console.error('Failed to load data:', error)
+      alert('Failed to load customer data. Please check your connection.')
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    // Load all data initially
     loadCustomers()
+    
+    // Set up real-time listeners for both collections
+    const unsubscribeCustomers = onSnapshot(collection(db, 'customers'), (snapshot) => {
+      console.log('Customers collection changed, reloading...')
+      loadCustomers()
+    }, (error) => {
+      console.error('Customers listener error:', error)
+    })
+    
+    const unsubscribeRequests = onSnapshot(collection(db, 'serviceRequests'), (snapshot) => {
+      console.log('Service requests collection changed, reloading...')
+      loadCustomers()
+    }, (error) => {
+      console.error('Service requests listener error:', error)
+    })
+
+    return () => {
+      unsubscribeCustomers()
+      unsubscribeRequests()
+    }
   }, [])
 
   const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+    customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.phone?.includes(searchTerm) ||
+    customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.message?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       if (editingId) {
-        await updateServiceRequest(editingId, formData)
+        await updateCustomer(editingId, formData)
         setCustomers(customers.map(c => c.id === editingId ? { ...formData, id: editingId } : c))
       } else {
-        const result = await addServiceRequest({
-          ...formData,
-          createdAt: new Date().toISOString()
-        })
-        console.log('Add result:', result)
-        const newCustomer = { ...formData, id: result, createdAt: new Date().toISOString() }
-        setCustomers([...customers, newCustomer])
+        const result = await addCustomer(formData)
         alert('Customer added successfully!')
       }
       resetForm()
     } catch (error) {
-      console.error('Failed to save customer:', error)
-      alert('Failed to save customer. Please check your connection and try again.')
+      console.error('Failed to save to Firebase:', error)
+      alert('Failed to save customer. Please check your Firebase connection.')
     }
   }
 
@@ -114,17 +119,32 @@ export default function CRM({ onClose }) {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this customer?')) return
+    if (!confirm('Are you sure you want to permanently delete this record? This action cannot be undone.')) return
     
     try {
-      console.log('Deleting customer with ID:', id)
-      const response = await deleteServiceRequest(id)
-      console.log('Delete successful:', response)
-      setCustomers(customers.filter(c => c.id !== id))
-      alert('Customer deleted successfully!')
+      const customer = customers.find(c => c.id === id)
+      console.log('Deleting customer:', customer)
+      
+      // Delete from appropriate collection based on source
+      if (customer?.source === 'serviceRequest') {
+        console.log('Deleting from serviceRequests collection')
+        await deleteServiceRequest(id)
+      } else {
+        console.log('Deleting from customers collection')
+        await deleteCustomer(id)
+      }
+      
+      // Immediately remove from local state
+      setCustomers(prev => prev.filter(c => c.id !== id))
+      
+      // Also refresh data to ensure consistency
+      setTimeout(() => loadCustomers(), 500)
+      
+      alert('Record permanently deleted!')
+      
     } catch (error) {
-      console.error('Failed to delete customer:', error)
-      alert('Failed to delete customer. Please try again.')
+      console.error('Failed to delete record:', error)
+      alert('Failed to delete record. Please check your Firebase connection.')
     }
   }
 
@@ -151,6 +171,44 @@ export default function CRM({ onClose }) {
               className="w-full pl-9 pr-3 py-2 text-sm bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white placeholder-gray-200 font-medium focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white/30 transition-all duration-300 focus:outline-none"
             />
           </div>
+          <button
+            onClick={loadCustomers}
+            className="w-full sm:w-auto px-3 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            🔄 Refresh
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm('Delete ALL test data? This will remove test records permanently from both collections.')) return
+              try {
+                const testNames = ['John Doe', 'Jane Smith', 'Test Customer']
+                const toDelete = customers.filter(c => testNames.includes(c.name))
+                let deletedCount = 0
+                
+                for (const customer of toDelete) {
+                  try {
+                    if (customer.source === 'serviceRequest') {
+                      await deleteServiceRequest(customer.id)
+                    } else {
+                      await deleteCustomer(customer.id)
+                    }
+                    deletedCount++
+                  } catch (deleteError) {
+                    console.error(`Failed to delete ${customer.name}:`, deleteError)
+                  }
+                }
+                
+                await loadCustomers()
+                alert(`Deleted ${deletedCount} test records!`)
+              } catch (error) {
+                console.error('Failed to clear test data:', error)
+                alert('Failed to clear test data')
+              }
+            }}
+            className="w-full sm:w-auto px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            🗑️ Clear Test Data
+          </button>
           <button
             onClick={() => setShowForm(true)}
             className="w-full sm:w-auto px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -192,6 +250,16 @@ export default function CRM({ onClose }) {
                       <div className="text-slate-300">
                         <span className="text-cyan-400 truncate">{customer.service}</span>
                       </div>
+                      {customer.message && (
+                        <div className="text-slate-300 text-xs">
+                          <span className="truncate">💬 {customer.message}</span>
+                        </div>
+                      )}
+                      {customer.source === 'serviceRequest' && (
+                        <div className="text-xs text-orange-400">
+                          📋 Service Request
+                        </div>
+                      )}
                     </div>
                     <div className="mt-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${

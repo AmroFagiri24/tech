@@ -138,22 +138,15 @@ const showBookingModal = () => {
     };
     
     try {
-      const response = await fetch('http://localhost:3001/api/service-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(booking)
-      });
-      if (response.ok) {
-        buttonActions.showNotification('Booking saved to database successfully!');
-      } else {
-        throw new Error('Database save failed');
-      }
+      console.log('Saving booking:', booking);
+      // Import Firebase functions dynamically
+      const { addServiceRequest } = await import('../utils/db.js');
+      const result = await addServiceRequest(booking);
+      console.log('Booking saved with ID:', result);
+      buttonActions.showNotification('Booking confirmed! We\'ll contact you soon.');
     } catch (error) {
-      console.error('Failed to save to database:', error);
-      const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-      bookings.push(booking);
-      localStorage.setItem('bookings', JSON.stringify(bookings));
-      buttonActions.showNotification('Booking saved locally - will sync when online.');
+      console.error('Failed to save booking:', error);
+      buttonActions.showNotification('Booking failed. Please try again or call us.', 'error');
     }
     
     closeBookingModal();
