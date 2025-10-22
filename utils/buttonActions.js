@@ -96,6 +96,8 @@ const showBookingModal = () => {
             <option value="Virus Removal" class="bg-gray-800 text-white">Virus Removal</option>
             <option value="CCTV Installation" class="bg-gray-800 text-white">CCTV Installation</option>
             <option value="Network Setup" class="bg-gray-800 text-white">Network Setup</option>
+            <option value="Web Design" class="bg-gray-800 text-white">Web Design</option>
+            <option value="Mobile Applications" class="bg-gray-800 text-white">Mobile Applications</option>
           </select>
         </div>
         <input type="text" name="location" placeholder="Service Location (Address)" class="w-full p-3 sm:p-3.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white/30 text-white placeholder-gray-200 font-medium transition-all duration-300 hover:bg-white/25 text-sm sm:text-base" required>
@@ -122,9 +124,8 @@ const showBookingModal = () => {
   }, 10);
   
   // Handle form submission
-  modal.querySelector('#booking-form').addEventListener('submit', (e) => {
+  modal.querySelector('#booking-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
     const booking = {
       name: e.target.querySelector('input[name="name"]').value,
       email: e.target.querySelector('input[name="email"]').value,
@@ -132,27 +133,29 @@ const showBookingModal = () => {
       location: e.target.querySelector('input[name="location"]').value,
       service: e.target.querySelector('select').value,
       message: e.target.querySelector('textarea').value,
-      date: new Date().toLocaleString()
+      status: 'Pending',
+      createdAt: new Date().toISOString()
     };
     
-    // Save to database
     try {
-      // Import db functions
-      const { addServiceRequest } = await import('./db.js');
-      await addServiceRequest({
-        ...booking,
-        status: 'Pending',
-        createdAt: new Date().toISOString()
+      const response = await fetch('http://localhost:3001/api/service-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booking)
       });
+      if (response.ok) {
+        buttonActions.showNotification('Booking saved to database successfully!');
+      } else {
+        throw new Error('Database save failed');
+      }
     } catch (error) {
-      console.error('Failed to save booking:', error);
-      // Fallback to localStorage
+      console.error('Failed to save to database:', error);
       const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
       bookings.push(booking);
       localStorage.setItem('bookings', JSON.stringify(bookings));
+      buttonActions.showNotification('Booking saved locally - will sync when online.');
     }
     
-    buttonActions.showNotification('Booking request submitted! We\'ll contact you soon.');
     closeBookingModal();
   });
   

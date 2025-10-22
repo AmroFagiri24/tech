@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     question: "What areas do you serve?",
-    answer: "We serve the Greater Montreal Area including downtown Montreal, Laval, Longueuil, and surrounding suburbs. We offer both in-store service and on-site visits for your convenience."
+    answer: "We serve the Greater Toronto Area (GTA) including Toronto, Mississauga, Brampton, Markham, Richmond Hill, and surrounding areas. We offer both in-store service and on-site visits for your convenience."
   },
   {
     question: "How much do repairs typically cost?",

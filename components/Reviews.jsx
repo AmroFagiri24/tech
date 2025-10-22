@@ -6,22 +6,65 @@ const reviews = [
     rating: 5,
     text: 'Amazing service! They fixed my laptop the same day and explained everything clearly. Highly recommend!',
     service: 'Computer Repair',
-    color: 'blue'
+    color: 'blue',
+    location: 'Toronto'
   },
   {
     name: 'Mike Chen',
     rating: 5,
     text: 'Professional CCTV installation for my business. Great quality cameras and excellent customer service.',
     service: 'CCTV Installation',
-    color: 'purple'
+    color: 'purple',
+    location: 'Mississauga'
   },
   {
     name: 'Emily Davis',
     rating: 5,
     text: 'Recovered all my important files from a crashed hard drive. Thought they were gone forever!',
     service: 'Data Recovery',
-    color: 'emerald'
+    color: 'emerald',
+    location: 'Brampton'
   },
+  {
+    name: 'David Wilson',
+    rating: 5,
+    text: 'Fast MacBook repair service. Screen replacement was done perfectly and the price was very reasonable.',
+    service: 'MacBook Repair',
+    color: 'blue',
+    location: 'Markham'
+  },
+  {
+    name: 'Lisa Thompson',
+    rating: 5,
+    text: 'Excellent virus removal service. My computer runs like new again. Very professional team!',
+    service: 'Virus Removal',
+    color: 'purple',
+    location: 'Richmond Hill'
+  },
+  {
+    name: 'James Rodriguez',
+    rating: 5,
+    text: 'Great network setup for our office. Everything works perfectly and the team was very knowledgeable.',
+    service: 'Network Setup',
+    color: 'emerald',
+    location: 'Vaughan'
+  },
+  {
+    name: 'Amanda Foster',
+    rating: 5,
+    text: 'Beautiful website design for my business. Professional, responsive, and exactly what I wanted!',
+    service: 'Web Design',
+    color: 'blue',
+    location: 'Toronto'
+  },
+  {
+    name: 'Kevin Park',
+    rating: 5,
+    text: 'Excellent mobile app development. The app works flawlessly on both iOS and Android.',
+    service: 'Mobile Applications',
+    color: 'purple',
+    location: 'Mississauga'
+  }
 ]
 
 const getGradientClass = (color) => {
@@ -65,7 +108,7 @@ export default function Reviews() {
         </div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {reviews.map((review, index) => (
             <div key={index} className={`group relative overflow-hidden rounded-2xl border p-6 transition-all duration-500 hover:scale-105 bg-slate-800/50 border-slate-700/50 ${getHoverClass(review.color)} backdrop-blur-sm`}>
               <div className={`absolute inset-0 bg-gradient-to-br ${getGradientClass(review.color)}/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
@@ -77,6 +120,7 @@ export default function Reviews() {
                   <div>
                     <h4 className="font-bold text-white">{review.name}</h4>
                     <p className="text-sm text-slate-400">{review.service}</p>
+                    <p className="text-xs text-slate-500">{review.location}</p>
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-300">

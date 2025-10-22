@@ -20,7 +20,7 @@ export default function Footer() {
                 <span className="text-slate-300">+1 (514) 557-1996</span>
               </div>
               <p className="text-slate-300">Empros2025@gmail.com</p>
-              <p className="text-slate-300">Toronto, ON, Canada</p>
+              <p className="text-slate-300">GTA, ON, Canada</p>
             </div>
           </div>
 
@@ -28,7 +28,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-4 text-emerald-400">Services</h4>
             <ul className="space-y-2">
-              {['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation'].map((service) => (
+              {['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation', 'Web Design', 'Mobile Applications'].map((service) => (
                 <li key={service}>
                   <button className="text-sm hover:text-emerald-300 hover:scale-105 transition-all duration-300 text-slate-300">
                     {service}
@@ -42,10 +42,23 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-4 text-indigo-400">Company</h4>
             <ul className="space-y-2">
-              {['About Us', 'Contact', 'Testimonials', 'FAQ'].map((item) => (
-                <li key={item}>
-                  <button className="text-sm hover:text-indigo-300 hover:scale-105 transition-all duration-300 text-slate-300">
-                    {item}
+              {[
+                { name: 'About Us', id: 'about' },
+                { name: 'Contact', id: 'contact' },
+                { name: 'Testimonials', id: 'reviews' },
+                { name: 'FAQ', id: 'faq' }
+              ].map((item) => (
+                <li key={item.name}>
+                  <button 
+                    onClick={() => {
+                      const element = document.getElementById(item.id);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                    className="text-sm hover:text-indigo-300 hover:scale-105 transition-all duration-300 text-slate-300"
+                  >
+                    {item.name}
                   </button>
                 </li>
               ))}

@@ -37,6 +37,18 @@ const services = [
     price: 'From $59',
     image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
   },
+  {
+    name: 'Web Design',
+    description: 'Custom websites, e-commerce, and responsive design',
+    price: 'From $299',
+    image: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    name: 'Mobile Applications',
+    description: 'iOS and Android app development and deployment',
+    price: 'From $499',
+    image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+  }
 ]
 
 export default function Services() {

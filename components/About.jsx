@@ -20,7 +20,7 @@ export default function About() {
     {
       icon: UserGroupIcon,
       title: '1000+ Satisfied Clients',
-      description: 'Trusted by over 1000 customers across Toronto for reliable tech solutions.'
+      description: 'Trusted by over 1000 customers across the GTA for reliable tech solutions.'
     }
   ]
 
@@ -46,7 +46,7 @@ export default function About() {
             About Us
           </h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-            Your trusted tech support partner in <span className="text-blue-400 font-semibold">Toronto</span>. 
+            Your trusted tech support partner in the <span className="text-blue-400 font-semibold">Greater Toronto Area (GTA)</span>. 
             We provide professional, reliable, and affordable tech solutions.
           </p>
         </div>

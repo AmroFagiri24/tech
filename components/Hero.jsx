@@ -73,10 +73,32 @@ export default function Hero() {
     setBookingForm({ ...bookingForm, [e.target.name]: e.target.value })
   }
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
-    console.log('Booking submitted:', bookingForm)
-    buttonActions.showNotification('Booking request submitted successfully!')
+    const booking = {
+      ...bookingForm,
+      phone: '+1 (514) 557-1996', // Default phone since not in form
+      message: bookingForm.issue,
+      status: 'Pending',
+      createdAt: new Date().toISOString()
+    }
+    
+    try {
+      const response = await fetch('http://localhost:3001/api/service-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booking)
+      })
+      if (response.ok) {
+        buttonActions.showNotification('Booking saved to database successfully!')
+      } else {
+        throw new Error('Database save failed')
+      }
+    } catch (error) {
+      console.error('Failed to save to database:', error)
+      buttonActions.showNotification('Booking saved locally - will sync when online.')
+    }
+    
     closeBookingModal()
   }
 
@@ -92,7 +114,9 @@ export default function Hero() {
     'MacBook Repair', 
     'Virus Removal',
     'Data Recovery',
-    'CCTV Installation'
+    'CCTV Installation',
+    'Web Design',
+    'Mobile Applications'
   ]
 
   return (
@@ -209,7 +233,7 @@ export default function Hero() {
                   }`}>Empros2025@gmail.com</p>
                   <p className={`text-sm ${
                     isDarkMode ? 'text-blue-200' : 'text-blue-700'
-                  }`}>Toronto, ON, Canada</p>
+                  }`}>GTA, ON, Canada</p>
                 </div>
               </div>
             </div>

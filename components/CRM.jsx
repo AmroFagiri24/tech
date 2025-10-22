@@ -21,7 +21,7 @@ export default function CRM({ onClose }) {
     name: '', phone: '', email: '', location: '', service: '', status: 'Pending'
   })
 
-  const services = ['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation', 'Network Setup']
+  const services = ['Computer Repair', 'MacBook Repair', 'Virus Removal', 'Data Recovery', 'CCTV Installation', 'Network Setup', 'Web Design', 'Mobile Applications']
   const statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled']
 
   // Load customers from database
@@ -32,17 +32,39 @@ export default function CRM({ onClose }) {
         setCustomers(data || [])
       } catch (error) {
         console.error('Failed to load customers:', error)
-        // Fallback to localStorage
+        // Fallback to localStorage and sync to database
         const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]')
-        setCustomers(localBookings.map((booking, index) => ({
-          id: index + 1,
+        const formattedBookings = localBookings.map((booking, index) => ({
+          id: `local-${index + 1}`,
           name: booking.name,
-          phone: booking.phone,
+          phone: booking.phone || '+1 (514) 557-1996',
           email: booking.email,
           location: booking.location,
           service: booking.service,
           status: booking.status || 'Pending'
-        })))
+        }))
+        setCustomers(formattedBookings)
+        
+        // Sync local bookings to database
+        if (localBookings.length > 0) {
+          localBookings.forEach(async (booking) => {
+            try {
+              await fetch('http://localhost:3001/api/service-requests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  ...booking,
+                  phone: booking.phone || '+1 (514) 557-1996',
+                  status: 'Pending',
+                  createdAt: new Date().toISOString()
+                })
+              })
+            } catch (error) {
+              console.error('Failed to sync booking to database:', error)
+            }
+          })
+          localStorage.removeItem('bookings') // Clear after sync
+        }
       } finally {
         setLoading(false)
       }
